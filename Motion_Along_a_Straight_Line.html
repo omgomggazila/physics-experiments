@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>等加速度直線運動</title>
+<style>
+body{ text-align:center; font-family:sans-serif; }
+canvas{ width:95%; background:#eef; border:1px solid #aaa; }
+</style>
+</head>
+<body>
+
+<h2>等加速度直線運動</h2>
+
+初速度 v₀ (m/s)
+<input type="range" id="v0" min="-5" max="5" value="2">
+<span id="v0v"></span><br>
+
+加速度 a (m/s²)
+<input type="range" id="a" min="-2" max="2" step="0.1" value="0.5">
+<span id="av"></span><br><br>
+
+<button onclick="start()">開始</button>
+<button id="pauseBtn" onclick="togglePause()">暫停</button>
+<button onclick="reset()">重設</button>
+
+<p>
+t = <span id="t"></span> s |
+v = <span id="v"></span> m/s |
+x = <span id="x"></span> m
+</p>
+
+<canvas id="c" height="200"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+c.width = window.innerWidth * 0.95;
+
+const r = 15;
+let pos, vel, acc, time;
+let timer, isPaused=false;
+
+function updateUI(){
+  v0v.textContent = v0.value;
+  av.textContent = a.value;
+}
+v0.oninput = a.oninput = updateUI;
+updateUI();
+
+function start(){
+  clearInterval(timer);
+  isPaused=false;
+  pauseBtn.textContent="暫停";
+
+  pos = 50;
+  vel = +v0.value;
+  acc = +a.value;
+  time = 0;
+
+  timer = setInterval(loop,30);
+}
+
+function loop(){
+  if(isPaused) return;
+
+  vel += acc * 0.03;
+  pos += vel;
+  time += 0.03;
+
+  t.textContent = time.toFixed(2);
+  v.textContent = vel.toFixed(2);
+  x.textContent = ((pos-50)/10).toFixed(2);
+
+  if(pos < -r || pos > c.width+r){
+    isPaused=true;
+    pauseBtn.textContent="繼續";
+  }
+
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.strokeStyle="#555";
+  ctx.beginPath();
+  ctx.moveTo(0,150);
+  ctx.lineTo(c.width,150);
+  ctx.stroke();
+
+  ctx.fillStyle="green";
+  ctx.beginPath();
+  ctx.arc(pos,130,r,0,2*Math.PI);
+  ctx.fill();
+}
+
+function togglePause(){
+  isPaused=!isPaused;
+  pauseBtn.textContent=isPaused?"繼續":"暫停";
+}
+
+function reset(){
+  clearInterval(timer);
+  isPaused=false;
+  pauseBtn.textContent="暫停";
+  ctx.clearRect(0,0,c.width,c.height);
+  t.textContent=v.textContent=x.textContent="";
+}
+</script>
+</body>
+</html>

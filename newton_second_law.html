@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>牛頓第二定律</title>
+<style>
+body{text-align:center;font-family:sans-serif;}
+canvas{width:95%;background:#fff3e0;border:1px solid #aaa;}
+</style>
+</head>
+<body>
+
+<h2>牛頓第二定律 F = ma</h2>
+
+力 F (N)
+<input type="range" id="F" min="-10" max="10" value="5">
+<span id="Fv"></span><br>
+
+質量 m (kg)
+<input type="range" id="m" min="1" max="5" value="2">
+<span id="mv"></span><br><br>
+
+<button onclick="start()">開始</button>
+<button id="pauseBtn" onclick="togglePause()">暫停</button>
+<button onclick="reset()">重設</button>
+
+<p>
+a = F / m = <span id="a"></span> m/s² |
+t = <span id="t"></span> s |
+v = <span id="v"></span> m/s
+</p>
+
+<canvas id="c" height="200"></canvas>
+
+<script>
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+c.width=window.innerWidth*0.95;
+
+let x, vcur, acc, time;
+let isPaused=false, timer;
+
+function updateUI(){
+  Fv.textContent=F.value;
+  mv.textContent=m.value;
+}
+F.oninput=m.oninput=updateUI;
+updateUI();
+
+function start(){
+  clearInterval(timer);
+  isPaused=false;
+  pauseBtn.textContent="暫停";
+
+  x=50; vcur=0; time=0;
+  acc=F.value/m.value;
+
+  a.textContent=acc.toFixed(2);
+
+  timer=setInterval(loop,30);
+}
+
+function loop(){
+  if(isPaused) return;
+
+  vcur+=acc*0.03;
+  x+=vcur;
+  time+=0.03;
+
+  t.textContent=time.toFixed(2);
+  v.textContent=vcur.toFixed(2);
+
+  if(x<-20||x>c.width+20){
+    isPaused=true;
+    pauseBtn.textContent="繼續";
+  }
+
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.beginPath();
+  ctx.moveTo(0,150);
+  ctx.lineTo(c.width,150);
+  ctx.stroke();
+
+  ctx.fillStyle="purple";
+  ctx.fillRect(x,120,30,30);
+}
+
+function togglePause(){
+  isPaused=!isPaused;
+  pauseBtn.textContent=isPaused?"繼續":"暫停";
+}
+
+function reset(){
+  clearInterval(timer);
+  ctx.clearRect(0,0,c.width,c.height);
+  t.textContent=v.textContent=a.textContent="";
+}
+</script>
+</body>
+</html>

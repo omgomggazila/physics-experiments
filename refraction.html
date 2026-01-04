@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>光的折射</title>
+<style>
+body{text-align:center;font-family:sans-serif;}
+canvas{border:1px solid #aaa;}
+</style>
+</head>
+<body>
+
+<h2>光的折射（Snell 定律）</h2>
+
+上層介質：
+<select id="med1">
+  <option value="1">空氣</option>
+  <option value="1.33">水</option>
+  <option value="1.5">玻璃</option>
+</select>
+
+下層介質：
+<select id="med2">
+  <option value="1">空氣</option>
+  <option value="1.33">水</option>
+  <option value="1.5">玻璃</option>
+</select><br><br>
+
+入射角 θ₁
+<input type="range" id="theta" min="0" max="90" value="30">
+<span id="tv"></span>°<br><br>
+
+<p>
+n₁ = <span id="n1"></span> |
+n₂ = <span id="n2"></span> |
+θ₂ = <span id="t2"></span>°
+</p>
+
+<canvas id="c" width="600" height="400"></canvas>
+
+<script>
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+const med1Select=document.getElementById("med1");
+const med2Select=document.getElementById("med2");
+const theta=document.getElementById("theta");
+const tv=document.getElementById("tv");
+const n1span=document.getElementById("n1");
+const n2span=document.getElementById("n2");
+const t2span=document.getElementById("t2");
+
+const nameMap={1:"空氣",1.33:"水",1.5:"玻璃"};
+
+function draw(){
+  const n1v=+med1Select.value;
+  const n2v=+med2Select.value;
+  const thetaDeg=+theta.value;
+
+  tv.textContent=thetaDeg;
+
+  n1span.textContent=n1v;
+  n2span.textContent=n2v;
+
+  const t1=Math.PI*thetaDeg/180;
+  const sin2=n1v*Math.sin(t1)/n2v;
+
+  if(Math.abs(sin2)>1){
+    t2span.textContent="全反射";
+  } else {
+    const t2v=Math.asin(sin2);
+    t2span.textContent=(t2v*180/Math.PI).toFixed(1);
+  }
+
+  // 畫背景
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.fillStyle="#d0e7ff";
+  ctx.fillRect(0,0,600,200);
+  ctx.fillStyle="#ffe0c0";
+  ctx.fillRect(0,200,600,200);
+
+  // 畫介質名稱
+  ctx.fillStyle="black";
+  ctx.font="18px sans-serif";
+  ctx.fillText(`介質一：${nameMap[n1v]}`,20,30);
+  ctx.fillText(`介質二：${nameMap[n2v]}`,20,230);
+
+  // 法線
+  ctx.beginPath();
+  ctx.moveTo(300,0);
+  ctx.lineTo(300,400);
+  ctx.strokeStyle="#444";
+  ctx.stroke();
+
+  // 入射線
+  ctx.beginPath();
+  ctx.strokeStyle="red";
+  ctx.moveTo(300,200);
+  ctx.lineTo(300-150*Math.sin(t1),200-150*Math.cos(t1));
+  ctx.stroke();
+
+  // 折射線
+  if(Math.abs(sin2)<=1){
+    ctx.beginPath();
+    ctx.strokeStyle="green";
+    ctx.moveTo(300,200);
+    ctx.lineTo(300+150*Math.sin(Math.asin(sin2)),200+150*Math.cos(Math.asin(sin2)));
+    ctx.stroke();
+  }
+}
+
+// 立即更新
+med1Select.onchange = draw;
+med2Select.onchange = draw;
+theta.oninput = draw;
+
+// 初始畫面
+draw();
+</script>
+
+</body>
+</html>

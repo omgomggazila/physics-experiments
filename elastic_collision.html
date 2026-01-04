@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>一維彈性碰撞（含暫停）</title>
+<style>
+body{
+  text-align:center;
+  font-family:sans-serif;
+}
+canvas{
+  background:#f0f0f0;
+  width:95%;
+  border:1px solid #aaa;
+}
+</style>
+</head>
+<body>
+
+<h2>一維彈性碰撞（動量守恆）</h2>
+
+藍球速度 v₁：
+<input type="range" id="v1" min="-5" max="5" value="4">
+<span id="v1v"></span> m/s<br>
+
+紅球速度 v₂：
+<input type="range" id="v2" min="-5" max="5" value="-3">
+<span id="v2v"></span> m/s<br><br>
+
+<button onclick="start()">開始</button>
+<button id="pauseBtn" onclick="togglePause()">暫停</button>
+<button onclick="reset()">重設</button>
+
+<p>
+目前速度：  
+v₁ = <span id="v1now"></span> m/s ｜  
+v₂ = <span id="v2now"></span> m/s
+</p>
+
+<canvas id="c" height="200"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+c.width = window.innerWidth * 0.95;
+
+const r = 20;
+let x1, x2;
+let v1c, v2c;
+let timer;
+let isPaused = false;
+
+function updateUI(){
+  v1v.textContent = v1.value;
+  v2v.textContent = v2.value;
+}
+updateUI();
+v1.oninput = v2.oninput = updateUI;
+
+function start(){
+  clearInterval(timer);
+  isPaused = false;
+  pauseBtn.textContent = "暫停";
+
+  x1 = 50;
+  x2 = c.width - 50;
+  v1c = +v1.value;
+  v2c = +v2.value;
+
+  timer = setInterval(loop, 30);
+}
+
+function loop(){
+  if (isPaused) return;
+
+  x1 += v1c;
+  x2 += v2c;
+
+  // 碰撞判斷（等質量彈性碰撞）
+  if (Math.abs(x1 - x2) <= 2 * r){
+    [v1c, v2c] = [v2c, v1c];
+  }
+
+  // 顯示速度
+  v1now.textContent = v1c.toFixed(2);
+  v2now.textContent = v2c.toFixed(2);
+
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  // 地面線
+  ctx.strokeStyle="#555";
+  ctx.beginPath();
+  ctx.moveTo(0,150);
+  ctx.lineTo(c.width,150);
+  ctx.stroke();
+
+  // 藍球
+  ctx.fillStyle="blue";
+  ctx.beginPath();
+  ctx.arc(x1,120,r,0,2*Math.PI);
+  ctx.fill();
+
+  // 紅球
+  ctx.fillStyle="red";
+  ctx.beginPath();
+  ctx.arc(x2,120,r,0,2*Math.PI);
+  ctx.fill();
+}
+
+function togglePause(){
+  isPaused = !isPaused;
+  pauseBtn.textContent = isPaused ? "繼續" : "暫停";
+}
+
+function reset(){
+  clearInterval(timer);
+  isPaused = false;
+  pauseBtn.textContent = "暫停";
+
+  v1.value = 4;
+  v2.value = -3;
+  updateUI();
+
+  v1now.textContent = "";
+  v2now.textContent = "";
+  ctx.clearRect(0,0,c.width,c.height);
+}
+</script>
+
+</body>
+</html>

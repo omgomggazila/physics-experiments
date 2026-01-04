@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>拋體運動</title>
+<style>
+body{
+  text-align:center;
+  font-family:sans-serif;
+}
+canvas{
+  width:95%;
+  background:#eef7ff;
+  border:1px solid #aaa;
+}
+</style>
+</head>
+<body>
+
+<h2>拋體運動（Projectile Motion）</h2>
+
+初速度 v₀ (m/s)
+<input type="range" id="v0" min="5" max="30" value="20">
+<span id="v0v"></span><br>
+
+拋射角 θ (°)
+<input type="range" id="angle" min="15" max="75" value="45">
+<span id="av"></span><br><br>
+
+<button onclick="start()">開始</button>
+<button id="pauseBtn" onclick="togglePause()">暫停</button>
+<button onclick="reset()">重設</button>
+
+<p>
+x = <span id="x"></span> m |
+y = <span id="y"></span> m<br>
+vₓ = <span id="vx"></span> m/s |
+vᵧ = <span id="vy"></span> m/s |
+t = <span id="t"></span> s
+</p>
+
+<canvas id="c" height="420"></canvas>
+
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
+c.width = window.innerWidth * 0.95;
+
+// 物理常數與設定
+const g = 9.8;
+const scale = 8;         // 1 m = 8 px
+const groundY = 350;
+const radius = 10;
+
+// DOM 顯示
+const xSpan = document.getElementById("x");
+const ySpan = document.getElementById("y");
+const vxSpan = document.getElementById("vx");
+const vySpan = document.getElementById("vy");
+const tSpan  = document.getElementById("t");
+
+// 狀態變數
+let posX, posY;
+let velX, velY;
+let time;
+let timer, isPaused = false;
+
+// UI
+function updateUI(){
+  v0v.textContent = v0.value;
+  av.textContent = angle.value;
+}
+v0.oninput = angle.oninput = updateUI;
+updateUI();
+
+function start(){
+  clearInterval(timer);
+  isPaused = false;
+  pauseBtn.textContent = "暫停";
+
+  const v = +v0.value;
+  const ang = angle.value * Math.PI / 180;
+
+  velX = v * Math.cos(ang);
+  velY = v * Math.sin(ang);
+
+  posX = 50;
+  posY = groundY - radius;
+  time = 0;
+
+  timer = setInterval(loop, 30);
+}
+
+function loop(){
+  if (isPaused) return;
+
+  time += 0.03;
+
+  posX += velX * 0.03 * scale;
+  posY -= velY * 0.03 * scale;
+  velY -= g * 0.03;
+
+  // 球底碰地 → 停止
+  if (posY + radius >= groundY){
+    posY = groundY - radius;
+    isPaused = true;
+    pauseBtn.textContent = "繼續";
+  }
+
+  // 顯示數值
+  xSpan.textContent = ((posX - 50) / scale).toFixed(2);
+  ySpan.textContent = ((groundY - radius - posY) / scale).toFixed(2);
+  vxSpan.textContent = velX.toFixed(2);
+  vySpan.textContent = velY.toFixed(2);
+  tSpan.textContent  = time.toFixed(2);
+
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  // 地面線
+  ctx.strokeStyle="#444";
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  ctx.lineTo(c.width, groundY);
+  ctx.stroke();
+
+  // 球
+  ctx.fillStyle="orange";
+  ctx.beginPath();
+  ctx.arc(posX, posY, radius, 0, 2*Math.PI);
+  ctx.fill();
+}
+
+function togglePause(){
+  isPaused = !isPaused;
+  pauseBtn.textContent = isPaused ? "繼續" : "暫停";
+}
+
+function reset(){
+  clearInterval(timer);
+  isPaused = false;
+  pauseBtn.textContent="暫停";
+
+  xSpan.textContent = "";
+  ySpan.textContent = "";
+  vxSpan.textContent = "";
+  vySpan.textContent = "";
+  tSpan.textContent  = "";
+
+  ctx.clearRect(0,0,c.width,c.height);
+}
+</script>
+
+</body>
+</html>
