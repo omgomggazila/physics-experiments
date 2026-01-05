@@ -4,154 +4,115 @@
 <meta charset="UTF-8">
 <title>拋體運動</title>
 <style>
-body{
-  text-align:center;
-  font-family:sans-serif;
-}
-canvas{
-  width:95%;
-  background:#eef7ff;
-  border:1px solid #aaa;
-}
+body{text-align:center;font-family:Arial}
+canvas{border:1px solid #000;background:#eef}
+.lesson{max-width:900px;margin:40px auto;text-align:left;line-height:1.8}
+.lesson h3{border-left:6px solid #FF9800;padding-left:10px}
 </style>
 </head>
 <body>
 
-<h2>拋體運動（Projectile Motion）</h2>
+<h2>拋體運動</h2>
 
-初速度 v₀ (m/s)
-<input type="range" id="v0" min="5" max="30" value="20">
-<span id="v0v"></span><br>
-
-拋射角 θ (°)
-<input type="range" id="angle" min="15" max="75" value="45">
-<span id="av"></span><br><br>
-
-<button onclick="start()">開始</button>
-<button id="pauseBtn" onclick="togglePause()">暫停</button>
-<button onclick="reset()">重設</button>
+<canvas id="c" width="900" height="400"></canvas>
 
 <p>
-x = <span id="x"></span> m |
-y = <span id="y"></span> m<br>
-vₓ = <span id="vx"></span> m/s |
-vᵧ = <span id="vy"></span> m/s |
-t = <span id="t"></span> s
+初速 v₀ (m/s)
+<input type="range" id="v0" min="5" max="30" value="20">
+<span id="v0v">20</span>
+<br>
+發射角 θ (°)
+<input type="range" id="angle" min="10" max="80" value="45">
+<span id="av">45</span>
 </p>
 
-<canvas id="c" height="420"></canvas>
+<button onclick="toggle()">開始 / 暫停</button>
+<button onclick="reset()">重設</button>
+
+<p id="info"></p>
+
+<div class="lesson">
+<h3>一、原理說明</h3>
+<p>拋體運動可分解為水平方向的等速運動與鉛直方向的等加速度運動。</p>
+
+<h3>二、公式表示（含符號說明）</h3>
+<p>
+x = v₀cosθ · t<br>
+y = v₀sinθ · t − ½gt²
+</p>
+<p>
+vₓ = v₀cosθ（常數）<br>
+vᵧ = v₀sinθ − gt
+</p>
+
+<h3>三、圖像理解</h3>
+<p>軌跡呈拋物線，水平速度固定，鉛直速度隨時間改變。</p>
+
+<h3>四、適用範圍</h3>
+<p>忽略空氣阻力、重力加速度近似固定。</p>
+
+<h3>五、常見應用</h3>
+<p>球類運動、噴泉、水砲。</p>
+
+<h3>六、教學延伸問題</h3>
+<ol>
+<li>哪個角度射程最遠？</li>
+<li>vₓ 為何不變？</li>
+</ol>
+
+<h3>七、教學延伸問題解答</h3>
+<ol>
+<li>45°。</li>
+<li>水平方向沒有加速度。</li>
+</ol>
+</div>
 
 <script>
-const c = document.getElementById("c");
-const ctx = c.getContext("2d");
-c.width = window.innerWidth * 0.95;
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+const g=9.8;
+let x,y,vx,vy,t=0,run=false,last=0;
+const ground=350;
 
-// 物理常數與設定
-const g = 9.8;
-const scale = 8;         // 1 m = 8 px
-const groundY = 350;
-const radius = 10;
-
-// DOM 顯示
-const xSpan = document.getElementById("x");
-const ySpan = document.getElementById("y");
-const vxSpan = document.getElementById("vx");
-const vySpan = document.getElementById("vy");
-const tSpan  = document.getElementById("t");
-
-// 狀態變數
-let posX, posY;
-let velX, velY;
-let time;
-let timer, isPaused = false;
-
-// UI
-function updateUI(){
-  v0v.textContent = v0.value;
-  av.textContent = angle.value;
-}
-v0.oninput = angle.oninput = updateUI;
-updateUI();
-
-function start(){
-  clearInterval(timer);
-  isPaused = false;
-  pauseBtn.textContent = "暫停";
-
-  const v = +v0.value;
-  const ang = angle.value * Math.PI / 180;
-
-  velX = v * Math.cos(ang);
-  velY = v * Math.sin(ang);
-
-  posX = 50;
-  posY = groundY - radius;
-  time = 0;
-
-  timer = setInterval(loop, 30);
-}
-
-function loop(){
-  if (isPaused) return;
-
-  time += 0.03;
-
-  posX += velX * 0.03 * scale;
-  posY -= velY * 0.03 * scale;
-  velY -= g * 0.03;
-
-  // 球底碰地 → 停止
-  if (posY + radius >= groundY){
-    posY = groundY - radius;
-    isPaused = true;
-    pauseBtn.textContent = "繼續";
-  }
-
-  // 顯示數值
-  xSpan.textContent = ((posX - 50) / scale).toFixed(2);
-  ySpan.textContent = ((groundY - radius - posY) / scale).toFixed(2);
-  vxSpan.textContent = velX.toFixed(2);
-  vySpan.textContent = velY.toFixed(2);
-  tSpan.textContent  = time.toFixed(2);
-
-  draw();
+function reset(){
+ let v0=parseFloat(v0s.value);
+ let ang=parseFloat(as.value)*Math.PI/180;
+ x=50; y=ground;
+ vx=v0*Math.cos(ang);
+ vy=v0*Math.sin(ang);
+ t=0; run=false;
+ draw();
 }
 
 function draw(){
-  ctx.clearRect(0,0,c.width,c.height);
-
-  // 地面線
-  ctx.strokeStyle="#444";
-  ctx.beginPath();
-  ctx.moveTo(0, groundY);
-  ctx.lineTo(c.width, groundY);
-  ctx.stroke();
-
-  // 球
-  ctx.fillStyle="orange";
-  ctx.beginPath();
-  ctx.arc(posX, posY, radius, 0, 2*Math.PI);
-  ctx.fill();
+ ctx.clearRect(0,0,c.width,c.height);
+ ctx.beginPath();
+ ctx.moveTo(0,ground);
+ ctx.lineTo(c.width,ground);
+ ctx.stroke();
+ ctx.beginPath();
+ ctx.arc(x,y,10,0,Math.PI*2);
+ ctx.fill();
 }
 
-function togglePause(){
-  isPaused = !isPaused;
-  pauseBtn.textContent = isPaused ? "繼續" : "暫停";
+function loop(ts){
+ if(!run){last=ts;requestAnimationFrame(loop);return;}
+ let dt=(ts-last)/1000; last=ts;
+ t+=dt;
+ x+=vx*dt*10;
+ vy-=g*dt;
+ y-=vy*dt*10;
+ if(y>=ground){y=ground; run=false;}
+ info.innerText=`x=${(x/10).toFixed(2)} m | y=${((ground-y)/10).toFixed(2)} m
+ | vₓ=${vx.toFixed(2)} m/s | vᵧ=${vy.toFixed(2)} m/s`;
+ draw(); requestAnimationFrame(loop);
 }
 
-function reset(){
-  clearInterval(timer);
-  isPaused = false;
-  pauseBtn.textContent="暫停";
+function toggle(){run=!run}
 
-  xSpan.textContent = "";
-  ySpan.textContent = "";
-  vxSpan.textContent = "";
-  vySpan.textContent = "";
-  tSpan.textContent  = "";
-
-  ctx.clearRect(0,0,c.width,c.height);
-}
+const v0s=v0,as=angle;
+v0s.oninput=()=>v0v.innerText=v0s.value;
+as.oninput=()=>av.innerText=as.value;
+reset();requestAnimationFrame(loop);
 </script>
 
 </body>
