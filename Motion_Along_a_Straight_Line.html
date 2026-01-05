@@ -4,108 +4,91 @@
 <meta charset="UTF-8">
 <title>等加速度直線運動</title>
 <style>
-body{ text-align:center; font-family:sans-serif; }
-canvas{ width:95%; background:#eef; border:1px solid #aaa; }
+body{text-align:center;font-family:Arial}
+canvas{border:1px solid #000;background:#f5f5f5}
+.lesson{max-width:900px;margin:40px auto;text-align:left;line-height:1.8}
+.lesson h3{border-left:6px solid #4CAF50;padding-left:10px}
+.controls{margin:10px}
 </style>
 </head>
 <body>
 
 <h2>等加速度直線運動</h2>
 
-初速度 v₀ (m/s)
-<input type="range" id="v0" min="-5" max="5" value="2">
-<span id="v0v"></span><br>
+<canvas id="c" width="900" height="200"></canvas>
 
+<div class="controls">
 加速度 a (m/s²)
-<input type="range" id="a" min="-2" max="2" step="0.1" value="0.5">
-<span id="av"></span><br><br>
-
-<button onclick="start()">開始</button>
-<button id="pauseBtn" onclick="togglePause()">暫停</button>
+<input type="range" id="a" min="-5" max="5" step="0.1" value="1">
+<span id="av">1</span>
+<br>
+<button onclick="toggle()">開始 / 暫停</button>
 <button onclick="reset()">重設</button>
+</div>
 
+<p id="info"></p>
+
+<div class="lesson">
+<h3>一、原理說明</h3>
+<p>物體在一直線上運動，且加速度為固定常數。</p>
+
+<h3>二、公式表示（含符號說明）</h3>
 <p>
-t = <span id="t"></span> s |
-v = <span id="v"></span> m/s |
-x = <span id="x"></span> m
+v = v₀ + at<br>
+x = x₀ + v₀t + ½at²
+</p>
+<p>
+x：位置(m)，v：速度(m/s)，a：加速度(m/s²)，t：時間(s)
 </p>
 
-<canvas id="c" height="200"></canvas>
+<h3>三、圖像理解</h3>
+<p>物體以圓點表示，運動軌跡為一直線，速度逐漸改變。</p>
+
+<h3>四、適用範圍</h3>
+<p>忽略空氣阻力、加速度近似固定的情況。</p>
+
+<h3>五、常見應用</h3>
+<p>電車啟動、直線加速測試。</p>
+
+<h3>六、教學延伸問題</h3>
+<ol>
+<li>加速度為負時代表什麼？</li>
+<li>若初速不為零，運動會如何改變？</li>
+</ol>
+
+<h3>七、教學延伸問題解答</h3>
+<ol>
+<li>代表減速。</li>
+<li>速度整體平移，但仍為等加速度運動。</li>
+</ol>
+</div>
 
 <script>
-const c = document.getElementById("c");
-const ctx = c.getContext("2d");
-c.width = window.innerWidth * 0.95;
-
-const r = 15;
-let pos, vel, acc, time;
-let timer, isPaused=false;
-
-function updateUI(){
-  v0v.textContent = v0.value;
-  av.textContent = a.value;
-}
-v0.oninput = a.oninput = updateUI;
-updateUI();
-
-function start(){
-  clearInterval(timer);
-  isPaused=false;
-  pauseBtn.textContent="暫停";
-
-  pos = 50;
-  vel = +v0.value;
-  acc = +a.value;
-  time = 0;
-
-  timer = setInterval(loop,30);
-}
-
-function loop(){
-  if(isPaused) return;
-
-  vel += acc * 0.03;
-  pos += vel;
-  time += 0.03;
-
-  t.textContent = time.toFixed(2);
-  v.textContent = vel.toFixed(2);
-  x.textContent = ((pos-50)/10).toFixed(2);
-
-  if(pos < -r || pos > c.width+r){
-    isPaused=true;
-    pauseBtn.textContent="繼續";
-  }
-
-  draw();
-}
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+let x=50,v=0,t=0,a=1,run=false,last=0;
 
 function draw(){
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx.strokeStyle="#555";
-  ctx.beginPath();
-  ctx.moveTo(0,150);
-  ctx.lineTo(c.width,150);
-  ctx.stroke();
-
-  ctx.fillStyle="green";
-  ctx.beginPath();
-  ctx.arc(pos,130,r,0,2*Math.PI);
-  ctx.fill();
+ ctx.clearRect(0,0,c.width,c.height);
+ ctx.beginPath();ctx.arc(x,100,10,0,Math.PI*2);ctx.fill();
 }
 
-function togglePause(){
-  isPaused=!isPaused;
-  pauseBtn.textContent=isPaused?"繼續":"暫停";
+function loop(ts){
+ if(!run){last=ts;requestAnimationFrame(loop);return;}
+ let dt=(ts-last)/1000; last=ts;
+ a=parseFloat(aSlider.value);
+ v+=a*dt; x+=v*dt*50; t+=dt;
+ if(x<0||x>c.width){run=false;}
+ info.innerText=`t=${t.toFixed(2)} s | v=${v.toFixed(2)} m/s | a=${a.toFixed(2)} m/s²`;
+ draw(); requestAnimationFrame(loop);
 }
 
-function reset(){
-  clearInterval(timer);
-  isPaused=false;
-  pauseBtn.textContent="暫停";
-  ctx.clearRect(0,0,c.width,c.height);
-  t.textContent=v.textContent=x.textContent="";
-}
+function toggle(){run=!run}
+function reset(){x=50;v=0;t=0;run=false}
+
+const aSlider=document.getElementById("a");
+aSlider.oninput=()=>av.innerText=aSlider.value;
+draw();requestAnimationFrame(loop);
 </script>
+
 </body>
 </html>
