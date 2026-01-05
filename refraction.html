@@ -4,117 +4,129 @@
 <meta charset="UTF-8">
 <title>光的折射</title>
 <style>
-body{text-align:center;font-family:sans-serif;}
-canvas{border:1px solid #aaa;}
+body{text-align:center;font-family:Arial}
+canvas{border:1px solid #000}
+.lesson{max-width:900px;margin:40px auto;text-align:left;line-height:1.8}
+.lesson h3{border-left:6px solid #03A9F4;padding-left:10px}
 </style>
 </head>
 <body>
 
-<h2>光的折射（Snell 定律）</h2>
-
-上層介質：
-<select id="med1">
-  <option value="1">空氣</option>
-  <option value="1.33">水</option>
-  <option value="1.5">玻璃</option>
-</select>
-
-下層介質：
-<select id="med2">
-  <option value="1">空氣</option>
-  <option value="1.33">水</option>
-  <option value="1.5">玻璃</option>
-</select><br><br>
-
-入射角 θ₁
-<input type="range" id="theta" min="0" max="90" value="30">
-<span id="tv"></span>°<br><br>
-
-<p>
-n₁ = <span id="n1"></span> |
-n₂ = <span id="n2"></span> |
-θ₂ = <span id="t2"></span>°
-</p>
+<h2>光的折射（雙介質）</h2>
 
 <canvas id="c" width="600" height="400"></canvas>
 
+<p>
+入射角 θ₁
+<input type="range" id="angle" min="5" max="80" value="30">
+<span id="av">30</span>°
+</p>
+
+<p>
+介質一（上方）：
+<select id="n1">
+<option value="1.00">空氣 (n=1.00)</option>
+<option value="1.33">水 (n=1.33)</option>
+<option value="1.50">玻璃 (n=1.50)</option>
+</select>
+<br>
+介質二（下方）：
+<select id="n2">
+<option value="1.33">水 (n=1.33)</option>
+<option value="1.50">玻璃 (n=1.50)</option>
+<option value="2.42">鑽石 (n=2.42)</option>
+</select>
+</p>
+
+<p id="info"></p>
+
+<div class="lesson">
+<h3>一、原理說明</h3>
+<p>光線從一種介質進入另一種介質時，因速率改變而發生折射。</p>
+
+<h3>二、公式表示（含符號說明）</h3>
+<p>
+n₁ sinθ₁ = n₂ sinθ₂
+</p>
+<p>
+n：折射率，θ：與法線夾角
+</p>
+
+<h3>三、圖像理解</h3>
+<p>進入折射率較大的介質時，折射光線向法線偏折。</p>
+
+<h3>四、適用範圍</h3>
+<p>幾何光學、介質均勻。</p>
+
+<h3>五、常見應用</h3>
+<p>透鏡、眼鏡、光纖通訊。</p>
+
+<h3>六、教學延伸問題</h3>
+<ol>
+<li>
+空氣（n₁=1.00）進入玻璃（n₂=1.50），入射角 30°，
+請計算折射角 θ₂。
+</li>
+<li>
+若由水進入空氣，可能發生什麼現象？
+</li>
+</ol>
+
+<h3>七、教學延伸問題解答</h3>
+<ol>
+<li>
+sinθ₂ = (1.00/1.50) × sin30° = 0.333 → θ₂ ≈ 19.5°
+</li>
+<li>
+可能發生全反射。
+</li>
+</ol>
+</div>
+
 <script>
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
-
-const med1Select=document.getElementById("med1");
-const med2Select=document.getElementById("med2");
-const theta=document.getElementById("theta");
-const tv=document.getElementById("tv");
-const n1span=document.getElementById("n1");
-const n2span=document.getElementById("n2");
-const t2span=document.getElementById("t2");
-
-const nameMap={1:"空氣",1.33:"水",1.5:"玻璃"};
+const c=document.getElementById("c"),ctx=c.getContext("2d");
 
 function draw(){
-  const n1v=+med1Select.value;
-  const n2v=+med2Select.value;
-  const thetaDeg=+theta.value;
+ ctx.clearRect(0,0,c.width,c.height);
 
-  tv.textContent=thetaDeg;
+ ctx.fillStyle="#E3F2FD";
+ ctx.fillRect(0,0,c.width,200);
+ ctx.fillStyle="#FFF3E0";
+ ctx.fillRect(0,200,c.width,200);
 
-  n1span.textContent=n1v;
-  n2span.textContent=n2v;
+ ctx.strokeStyle="#000";
+ ctx.beginPath();
+ ctx.moveTo(0,200); ctx.lineTo(c.width,200);
+ ctx.stroke();
 
-  const t1=Math.PI*thetaDeg/180;
-  const sin2=n1v*Math.sin(t1)/n2v;
+ let th1=angle.value*Math.PI/180;
+ let n1v=parseFloat(n1.value), n2v=parseFloat(n2.value);
+ let sin2=n1v*Math.sin(th1)/n2v;
 
-  if(Math.abs(sin2)>1){
-    t2span.textContent="全反射";
-  } else {
-    const t2v=Math.asin(sin2);
-    t2span.textContent=(t2v*180/Math.PI).toFixed(1);
-  }
+ let x0=300,y0=200;
 
-  // 畫背景
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx.fillStyle="#d0e7ff";
-  ctx.fillRect(0,0,600,200);
-  ctx.fillStyle="#ffe0c0";
-  ctx.fillRect(0,200,600,200);
+ ctx.strokeStyle="red";
+ ctx.beginPath();
+ ctx.moveTo(x0,y0);
+ ctx.lineTo(x0-200*Math.sin(th1),y0-200*Math.cos(th1));
+ ctx.stroke();
 
-  // 畫介質名稱
-  ctx.fillStyle="black";
-  ctx.font="18px sans-serif";
-  ctx.fillText(`介質一：${nameMap[n1v]}`,20,30);
-  ctx.fillText(`介質二：${nameMap[n2v]}`,20,230);
-
-  // 法線
+ if(sin2<=1){
+  let th2=Math.asin(sin2);
+  ctx.strokeStyle="blue";
   ctx.beginPath();
-  ctx.moveTo(300,0);
-  ctx.lineTo(300,400);
-  ctx.strokeStyle="#444";
+  ctx.moveTo(x0,y0);
+  ctx.lineTo(x0+200*Math.sin(th2),y0+200*Math.cos(th2));
   ctx.stroke();
-
-  // 入射線
-  ctx.beginPath();
-  ctx.strokeStyle="red";
-  ctx.moveTo(300,200);
-  ctx.lineTo(300-150*Math.sin(t1),200-150*Math.cos(t1));
-  ctx.stroke();
-
-  // 折射線
-  if(Math.abs(sin2)<=1){
-    ctx.beginPath();
-    ctx.strokeStyle="green";
-    ctx.moveTo(300,200);
-    ctx.lineTo(300+150*Math.sin(Math.asin(sin2)),200+150*Math.cos(Math.asin(sin2)));
-    ctx.stroke();
-  }
+  info.innerText=`n₁=${n1v} | n₂=${n2v} | 折射角 θ₂=${(th2*180/Math.PI).toFixed(2)}°`;
+ }else{
+  info.innerText="發生全反射（無折射光）";
+ }
 }
 
-// 立即更新
-med1Select.onchange = draw;
-med2Select.onchange = draw;
-theta.oninput = draw;
-
-// 初始畫面
+angle.oninput=()=>{av.innerText=angle.value;draw()}
+n1.onchange=draw;
+n2.onchange=draw;
 draw();
 </script>
 
