@@ -4,101 +4,90 @@
 <meta charset="UTF-8">
 <title>牛頓第二定律</title>
 <style>
-body{text-align:center;font-family:sans-serif;}
-canvas{width:95%;background:#fff3e0;border:1px solid #aaa;}
+body{text-align:center;font-family:Arial}
+canvas{border:1px solid #000;background:#eef}
+.lesson{max-width:900px;margin:40px auto;text-align:left;line-height:1.8}
+.lesson h3{border-left:6px solid #2196F3;padding-left:10px}
 </style>
 </head>
 <body>
 
-<h2>牛頓第二定律 F = ma</h2>
+<h2>牛頓第二定律</h2>
 
-力 F (N)
-<input type="range" id="F" min="-10" max="10" value="5">
-<span id="Fv"></span><br>
-
-質量 m (kg)
-<input type="range" id="m" min="1" max="5" value="2">
-<span id="mv"></span><br><br>
-
-<button onclick="start()">開始</button>
-<button id="pauseBtn" onclick="togglePause()">暫停</button>
-<button onclick="reset()">重設</button>
+<canvas id="c" width="900" height="200"></canvas>
 
 <p>
-a = F / m = <span id="a"></span> m/s² |
-t = <span id="t"></span> s |
-v = <span id="v"></span> m/s
+力 F(N)
+<input type="range" id="F" min="0" max="10" step="0.5" value="5">
+<span id="Fv">5</span>
+<br>
+質量 m(kg)
+<input type="range" id="m" min="1" max="10" step="1" value="5">
+<span id="mv">5</span>
 </p>
 
-<canvas id="c" height="200"></canvas>
+<button onclick="toggle()">開始 / 暫停</button>
+<button onclick="reset()">重設</button>
+
+<p id="info"></p>
+
+<div class="lesson">
+<h3>一、原理說明</h3>
+<p>物體的加速度與所受合力成正比，與質量成反比。</p>
+
+<h3>二、公式表示</h3>
+<p>F = ma</p>
+
+<h3>三、圖像理解</h3>
+<p>施力越大，加速度越大；質量越大，加速度越小。</p>
+
+<h3>四、適用範圍</h3>
+<p>慣性參考系。</p>
+
+<h3>五、常見應用</h3>
+<p>車輛加速、推箱子。</p>
+
+<h3>六、教學延伸問題</h3>
+<ol>
+<li>若力為零會怎樣？</li>
+<li>質量加倍會發生什麼？</li>
+</ol>
+
+<h3>七、教學延伸問題解答</h3>
+<ol>
+<li>速度保持不變。</li>
+<li>加速度變為一半。</li>
+</ol>
+</div>
 
 <script>
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
-c.width=window.innerWidth*0.95;
-
-let x, vcur, acc, time;
-let isPaused=false, timer;
-
-function updateUI(){
-  Fv.textContent=F.value;
-  mv.textContent=m.value;
-}
-F.oninput=m.oninput=updateUI;
-updateUI();
-
-function start(){
-  clearInterval(timer);
-  isPaused=false;
-  pauseBtn.textContent="暫停";
-
-  x=50; vcur=0; time=0;
-  acc=F.value/m.value;
-
-  a.textContent=acc.toFixed(2);
-
-  timer=setInterval(loop,30);
-}
-
-function loop(){
-  if(isPaused) return;
-
-  vcur+=acc*0.03;
-  x+=vcur;
-  time+=0.03;
-
-  t.textContent=time.toFixed(2);
-  v.textContent=vcur.toFixed(2);
-
-  if(x<-20||x>c.width+20){
-    isPaused=true;
-    pauseBtn.textContent="繼續";
-  }
-
-  draw();
-}
+const c=document.getElementById("c"),ctx=c.getContext("2d");
+let x=50,v=0,t=0,run=false,last=0;
 
 function draw(){
-  ctx.clearRect(0,0,c.width,c.height);
-  ctx.beginPath();
-  ctx.moveTo(0,150);
-  ctx.lineTo(c.width,150);
-  ctx.stroke();
-
-  ctx.fillStyle="purple";
-  ctx.fillRect(x,120,30,30);
+ ctx.clearRect(0,0,c.width,c.height);
+ ctx.fillRect(x,100,30,20);
 }
 
-function togglePause(){
-  isPaused=!isPaused;
-  pauseBtn.textContent=isPaused?"繼續":"暫停";
+function loop(ts){
+ if(!run){last=ts;requestAnimationFrame(loop);return;}
+ let dt=(ts-last)/1000; last=ts;
+ let F=parseFloat(Fs.value), m=parseFloat(ms.value);
+ let a=F/m;
+ v+=a*dt; x+=v*dt*50; t+=dt;
+ if(x>c.width-30){run=false}
+ info.innerText=`t=${t.toFixed(2)} s | v=${v.toFixed(2)} m/s | a=${a.toFixed(2)} m/s²`;
+ draw();requestAnimationFrame(loop);
 }
 
-function reset(){
-  clearInterval(timer);
-  ctx.clearRect(0,0,c.width,c.height);
-  t.textContent=v.textContent=a.textContent="";
-}
+function toggle(){run=!run}
+function reset(){x=50;v=0;t=0;run=false}
+
+const Fs=F,ms=m;
+Fs.oninput=()=>Fv.innerText=Fs.value;
+ms.oninput=()=>mv.innerText=ms.value;
+draw();requestAnimationFrame(loop);
 </script>
+
 </body>
 </html>
